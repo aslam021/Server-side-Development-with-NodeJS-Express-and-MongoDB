@@ -20,15 +20,16 @@ exports.getToken = function(user) {
 };
 
 var opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken(); //extract json web token from req header
 opts.secretOrKey = config.secretKey;
 
+//json web token passport strategy
 exports.jwtPassport = passport.use(new JwtStrategy(opts,
-    (jwt_payload, done) => {
+    (jwt_payload, done) => { //done is a callback provided by passport. it will be used to load information to request message
         console.log("JWT payload: ", jwt_payload);
         User.findOne({_id: jwt_payload._id}, (err, user) => {
             if (err) {
-                return done(err, false);
+                return done(err, false); //done(err, false) => (error, user)
             }
             else if (user) {
                 return done(null, user);
@@ -40,3 +41,5 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
     }));
 
 exports.verifyUser = passport.authenticate('jwt', {session: false});
+//we will use jwt strategy for authentication
+//we will not use session here
