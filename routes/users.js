@@ -22,7 +22,7 @@ router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, ne
 
 
 router.post('/signup', (req, res, next) => {
-  Users.register(new User({username: req.body.username}), 
+  Users.register(new Users({username: req.body.username}), 
     req.body.password, (err, user) => {
     if(err) {
       res.statusCode = 500;
