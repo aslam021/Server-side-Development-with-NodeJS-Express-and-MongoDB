@@ -1,10 +1,11 @@
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy; //to store the authentication strategies that we will configure
-var User = require('./models/user');
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
+var FacebookTokenStrategy = require('passport-facebook-token');
 var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 
+var User = require('./models/user');
 var config = require('./config.js');
 
 //next line is used in users.js (?)
@@ -54,3 +55,31 @@ exports.verifyAdmin = (req, res, next) => {
         return next(err);
     }
 }
+
+
+exports.facebookPassport = passport.use(new FacebookTokenStrategy({
+    clientID: config.facebook.appId,
+    clientSecret: config.facebook.appSecret
+}, (accessToken, refreshToken, profile, done) => {
+    User.findOne({facebookId: profile.id}, (err, user) => {
+        if (err) {
+            return done(err, false);
+        }
+        if (!err && user !== null) {
+            return done(null, user);
+        }
+        else {
+            user = new User({ username: profile.displayName });
+            user.facebookId = profile.id;
+            user.firstname = profile.name.givenName;
+            user.lastname = profile.name.familyName;
+            user.save((err, user) => {
+                if (err)
+                    return done(err, false);
+                else
+                    return done(null, user);
+            })
+        }
+    });
+}
+));
